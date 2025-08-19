@@ -1,2 +1,7 @@
 # Ignore dataset folders
 melanoma_cancer_dataset/
+
+# Virtual environments
+venv/
+.venv/
+env/
