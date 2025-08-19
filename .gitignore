@@ -5,3 +5,10 @@ melanoma_cancer_dataset/
 venv/
 .venv/
 env/
+
+# Ignore dataset artifacts
+*.npy
+
+# Ignore raw and processed data folders
+data/raw/
+data/processed/

@@ -4,6 +4,7 @@ import os
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 # Standard image size for image resizing (50 by 50 pixels)
 IMG_SIZE = 50
@@ -37,6 +38,10 @@ for filename in os.listdir(benign_train_path):
         # Read the image file located at the path (GRAYSCALE for simplicity)
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
+        if img is None:
+            print(f"Failed to load {path}")
+            continue
+
         # Resize the image to the standard size (50 by 50 pixels)
         img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
         img_array = np.array(img)
@@ -63,6 +68,10 @@ for filename in os.listdir(malignant_train_path):
         # Read the image file located at the path (GRAYSCALE for simplicity)
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
+        if img is None:
+            print(f"Failed to load {path}")
+            continue
+
         # Resize the image to the standard size (50 by 50 pixels)
         img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
         img_array = np.array(img)
@@ -83,6 +92,10 @@ for filename in os.listdir(benign_test_path):
         
         # Read the image file located at the path (GRAYSCALE for simplicity)
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+
+        if img is None:
+            print(f"Failed to load {path}")
+            continue
 
         # Resize the image to the standard size (50 by 50 pixels)
         img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
@@ -109,13 +122,17 @@ for filename in os.listdir(malignant_test_path):
         # Read the image file located at the path (GRAYSCALE for simplicity)
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
+        if img is None:
+            print(f"Failed to load {path}")
+            continue
+
         # Resize the image to the standard size (50 by 50 pixels)
         img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
         img_array = np.array(img)
 
         # Append the image array and its label (malignant) to the testing data list
         # The label is represented as a one-hot encoded vector
-        malignant_test_data.append([img_array, BENIGN])
+        malignant_test_data.append([img_array, MALIGNANT])
 
         # plt.imshow(img)
         # plt.show()
@@ -123,3 +140,34 @@ for filename in os.listdir(malignant_test_path):
 
     except Exception as e:
         print(f"Error processing file {filename}: {e}")
+
+# Ensure the training datasets are balanced by truncating the larger dataset
+if len(benign_train_data) > len(malignant_train_data):
+    benign_train_data = benign_train_data[:len(malignant_train_data)]
+elif len(malignant_train_data) > len(benign_train_data):
+    malignant_train_data = malignant_train_data[:len(benign_train_data)]
+
+# print(len(benign_train_data), "benign training images processed")
+# print(len(malignant_train_data), "malignant training images processed")
+# print(len(benign_test_data), "benign testing images processed")
+# print(len(malignant_test_data), "malignant testing images processed")
+
+# Combine the benign and malignant datasets into a single list
+training_data = benign_train_data + malignant_train_data
+testing_data = benign_test_data + malignant_test_data
+
+# Shuffle the data to ensure randomness
+np.random.shuffle(training_data)
+np.random.shuffle(testing_data)
+
+# Create the output directory for processed data
+out_dir = Path("data/processed")
+out_dir.mkdir(parents=True, exist_ok=True)
+
+# Define the paths for saving the training and testing data
+training_path = out_dir / "melanoma_training_data.npy"
+testing_path  = out_dir / "melanoma_testing_data.npy"
+
+# Save the training and testing data as a Python object in .npy format
+np.save(training_path, np.array(training_data, dtype=object), allow_pickle=True)
+np.save(testing_path, np.array(testing_data, dtype=object), allow_pickle=True)
