@@ -28,129 +28,59 @@ malignant_train_data = []
 benign_test_data = []
 malignant_test_data = []
 
-# Iterate over all files in the benign training dataset directory
-for filename in os.listdir(benign_train_path):
-    
-    try:
-        # Concatenate the filename with the benign training path
-        path = benign_train_path + '/' + filename
-        
-        # Read the image file located at the path (GRAYSCALE for simplicity)
-        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+def load_images(path):
+    '''
+    Loads images from the specified path and appends the images and the one-hot encoding
+    to the corresponding list.
 
-        if img is None:
-            print(f"Failed to load {path}")
-            continue
+    Args:
+        path (str): The path to the directory containing the images.
+    '''
+    for filename in os.listdir(path):
+        try:
+            # Concatenate the filename with the path
+            img_path = path + '/' + filename
+            
+            # Read the image file located at the path (GRAYSCALE for simplicity)
+            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
-        # Resize the image to the standard size (50 by 50 pixels)
-        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-        img_array = np.array(img)
+            if img is None:
+                print(f"Failed to load {img_path}")
+                continue
 
-        # Append the image array and its label (benign) to the training data list
-        # The label is represented as a one-hot encoded vector
-        benign_train_data.append([img_array, BENIGN])
+            # Resize the image to the standard size (50 by 50 pixels)
+            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+            img_array = np.array(img)
 
-        # plt.imshow(img)
-        # plt.show()
-        # break
-        # print(f"Processed benign file: {filename}")
+            # Append the image array and its label to the data list
+            # The label is represented as a one-hot encoded vector
+            if 'benign' in path:
+                if 'train' in path:
+                    benign_train_data.append([img_array, BENIGN])
+                else:
+                    benign_test_data.append([img_array, BENIGN])
 
-    except Exception as e:
-        print(f"Error processing file {filename}: {e}")
+            elif 'malignant' in path:
+                if 'train' in path:
+                    malignant_train_data.append([img_array, MALIGNANT])
+                else:
+                    malignant_test_data.append([img_array, MALIGNANT])
 
-# Iterate over all files in the malignant training dataset directory
-for filename in os.listdir(malignant_train_path):
-    
-    try:
-        # Concatenate the filename with the malignant training path
-        path = malignant_train_path + '/' + filename
-        
-        # Read the image file located at the path (GRAYSCALE for simplicity)
-        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            # print(f"Processed file: {filename} from {path}")
 
-        if img is None:
-            print(f"Failed to load {path}")
-            continue
+        except Exception as e:
+            print(f"Error processing file {filename}: {e}")
 
-        # Resize the image to the standard size (50 by 50 pixels)
-        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-        img_array = np.array(img)
-
-        # Append the image array and its label (malignant) to the training data list
-        # The label is represented as a one-hot encoded vector
-        malignant_train_data.append([img_array, MALIGNANT])
-
-    except Exception as e:
-        print(f"Error processing file {filename}: {e}")
-
-# Iterate over all files in the benign testing dataset directory
-for filename in os.listdir(benign_test_path):
-    
-    try:
-        # Concatenate the filename with the benign testing path
-        path = benign_test_path + '/' + filename
-        
-        # Read the image file located at the path (GRAYSCALE for simplicity)
-        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-
-        if img is None:
-            print(f"Failed to load {path}")
-            continue
-
-        # Resize the image to the standard size (50 by 50 pixels)
-        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-        img_array = np.array(img)
-
-        # Append the image array and its label (benign) to the testing data list
-        # The label is represented as a one-hot encoded vector
-        benign_test_data.append([img_array, BENIGN])
-
-        # plt.imshow(img)
-        # plt.show()
-        # break
-
-    except Exception as e:
-        print(f"Error processing file {filename}: {e}")
-
-# Iterate over all files in the malignant testing dataset directory
-for filename in os.listdir(malignant_test_path):
-    
-    try:
-        # Concatenate the filename with the malignant testing path
-        path = malignant_test_path + '/' + filename
-        
-        # Read the image file located at the path (GRAYSCALE for simplicity)
-        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-
-        if img is None:
-            print(f"Failed to load {path}")
-            continue
-
-        # Resize the image to the standard size (50 by 50 pixels)
-        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-        img_array = np.array(img)
-
-        # Append the image array and its label (malignant) to the testing data list
-        # The label is represented as a one-hot encoded vector
-        malignant_test_data.append([img_array, MALIGNANT])
-
-        # plt.imshow(img)
-        # plt.show()
-        # break
-
-    except Exception as e:
-        print(f"Error processing file {filename}: {e}")
+# Create the benign and malignant training/testing datasets
+datasets = [benign_train_path, malignant_train_path, benign_test_path, malignant_test_path]
+for dataset in datasets:
+    load_images(dataset)
 
 # Ensure the training datasets are balanced by truncating the larger dataset
 if len(benign_train_data) > len(malignant_train_data):
     benign_train_data = benign_train_data[:len(malignant_train_data)]
 elif len(malignant_train_data) > len(benign_train_data):
     malignant_train_data = malignant_train_data[:len(benign_train_data)]
-
-# print(len(benign_train_data), "benign training images processed")
-# print(len(malignant_train_data), "malignant training images processed")
-# print(len(benign_test_data), "benign testing images processed")
-# print(len(malignant_test_data), "malignant testing images processed")
 
 # Combine the benign and malignant datasets into a single list
 training_data = benign_train_data + malignant_train_data
